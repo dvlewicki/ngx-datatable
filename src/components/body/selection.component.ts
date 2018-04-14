@@ -62,8 +62,14 @@ export class DataTableSelectionComponent {
       selected = selected.filter(this.selectCheck.bind(this));
     }
 
-    this.selected.splice(0, this.selected.length);
-    this.selected.push(...selected);
+    /* Allow for shift clicking to select multiple items and if user decides to select items further down, the previous items will not
+    become unselected */
+    const oldSlice = this.selected.splice(0, this.selected.length);
+    const unique = this.getUniqRows(selected);
+
+    let concatSelection = unique.concat(oldSlice);
+    concatSelection = this.getUniqRows(concatSelection);
+    this.selected.push(...concatSelection);
 
     this.prevIndex = index;
 
@@ -164,4 +170,7 @@ export class DataTableSelectionComponent {
     });
   }
 
+  getUniqRows(a: any): any {
+    return Array.from(new Set(a))
+  }
 }
