@@ -62,8 +62,8 @@ export class DataTableSelectionComponent {
       selected = selected.filter(this.selectCheck.bind(this));
     }
 
-    /* Allow for shift clicking to select multiple items and if user decides to select items further down, the previous items will not
-    become unselected */
+    /* Allow for shift clicking to select multiple items and if user decides to
+    select items further down, the previous items will not become unselected */
     const oldSlice = this.selected.splice(0, this.selected.length);
     const unique = this.getUniqRows(selected);
 
@@ -171,6 +171,6 @@ export class DataTableSelectionComponent {
   }
 
   getUniqRows(a: any): any {
-    return Array.from(new Set(a))
+    return Array.from(new Set(a));
   }
 }

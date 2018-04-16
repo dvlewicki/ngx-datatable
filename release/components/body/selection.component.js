@@ -41,8 +41,13 @@ var DataTableSelectionComponent = /** @class */ (function () {
         if (typeof this.selectCheck === 'function') {
             selected = selected.filter(this.selectCheck.bind(this));
         }
-        this.selected.splice(0, this.selected.length);
-        (_a = this.selected).push.apply(_a, selected);
+        /* Allow for shift clicking to select multiple items and if user decides to
+        select items further down, the previous items will not become unselected */
+        var oldSlice = this.selected.splice(0, this.selected.length);
+        var unique = this.getUniqRows(selected);
+        var concatSelection = unique.concat(oldSlice);
+        concatSelection = this.getUniqRows(concatSelection);
+        (_a = this.selected).push.apply(_a, concatSelection);
         this.prevIndex = index;
         this.select.emit({
             selected: selected
@@ -134,6 +139,9 @@ var DataTableSelectionComponent = /** @class */ (function () {
             var id = _this.rowIdentity(r);
             return id === rowId;
         });
+    };
+    DataTableSelectionComponent.prototype.getUniqRows = function (a) {
+        return Array.from(new Set(a));
     };
     __decorate([
         core_1.Input(),

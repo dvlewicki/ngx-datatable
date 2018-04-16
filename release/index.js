@@ -2102,8 +2102,13 @@ var DataTableSelectionComponent = /** @class */ (function () {
         if (typeof this.selectCheck === 'function') {
             selected = selected.filter(this.selectCheck.bind(this));
         }
-        this.selected.splice(0, this.selected.length);
-        (_a = this.selected).push.apply(_a, selected);
+        /* Allow for shift clicking to select multiple items and if user decides to
+        select items further down, the previous items will not become unselected */
+        var oldSlice = this.selected.splice(0, this.selected.length);
+        var unique = this.getUniqRows(selected);
+        var concatSelection = unique.concat(oldSlice);
+        concatSelection = this.getUniqRows(concatSelection);
+        (_a = this.selected).push.apply(_a, concatSelection);
         this.prevIndex = index;
         this.select.emit({
             selected: selected
@@ -2195,6 +2200,9 @@ var DataTableSelectionComponent = /** @class */ (function () {
             var id = _this.rowIdentity(r);
             return id === rowId;
         });
+    };
+    DataTableSelectionComponent.prototype.getUniqRows = function (a) {
+        return Array.from(new Set(a));
     };
     __decorate([
         core_1.Input(),
@@ -2664,7 +2672,7 @@ var DatatableComponent = /** @class */ (function () {
             }
             // auto sort on new updates
             if (!this.externalSorting) {
-                this._internalRows = utils_1.sortRows(this._internalRows, this._internalColumns, this.sorts);
+                this.sortInternalRows();
             }
             // recalculate sizes/etc
             this.recalculate();
@@ -2928,7 +2936,7 @@ var DatatableComponent = /** @class */ (function () {
     DatatableComponent.prototype.ngAfterViewInit = function () {
         var _this = this;
         if (!this.externalSorting) {
-            this._internalRows = utils_1.sortRows(this._internalRows, this._internalColumns, this.sorts);
+            this.sortInternalRows();
         }
         // this has to be done to prevent the change detection
         // tree from freaking out because we are readjusting
@@ -2968,6 +2976,7 @@ var DatatableComponent = /** @class */ (function () {
                 this._internalColumns = utils_1.translateTemplates(arr);
                 utils_1.setColumnDefaults(this._internalColumns);
                 this.recalculateColumns();
+                this.sortInternalRows();
                 this.cd.markForCheck();
             }
         }
@@ -3004,7 +3013,7 @@ var DatatableComponent = /** @class */ (function () {
     DatatableComponent.prototype.ngDoCheck = function () {
         if (this.rowDiffer.diff(this.rows)) {
             if (!this.externalSorting) {
-                this._internalRows = utils_1.sortRows(this._internalRows, this._internalColumns, this.sorts);
+                this.sortInternalRows();
             }
             else {
                 this._internalRows = this.rows.slice();
@@ -3232,14 +3241,13 @@ var DatatableComponent = /** @class */ (function () {
                 selected: this.selected
             });
         }
-        var sorts = event.sorts;
+        this.sorts = event.sorts;
         // this could be optimized better since it will resort
         // the rows again on the 'push' detection...
         if (this.externalSorting === false) {
             // don't use normal setter so we don't resort
-            this._internalRows = utils_1.sortRows(this._internalRows, this._internalColumns, sorts);
+            this.sortInternalRows();
         }
-        this.sorts = sorts;
         // Always go to first page when sorting to see the newly sorted data
         this.offset = 0;
         this.bodyComponent.updateOffsetY(this.offset);
@@ -3281,6 +3289,9 @@ var DatatableComponent = /** @class */ (function () {
      */
     DatatableComponent.prototype.onBodySelect = function (event) {
         this.select.emit(event);
+    };
+    DatatableComponent.prototype.sortInternalRows = function () {
+        this._internalRows = utils_1.sortRows(this._internalRows, this._internalColumns, this.sorts);
     };
     __decorate([
         core_1.Input(),
